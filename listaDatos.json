@@ -1,16 +1,34 @@
 [
-    {
-        "nombre": "Sebastian",
-        "apellido": "Alfonso",
-        "edad": 18,
-        "correo": "sebastian.alfonso@example.com",
-        "avatar": "imagenes/sebastian.jpg"
-    },
-    { 
-        "nombre": "Lucia",
-        "apellido": "Rubiano",
-        "edad": 18,
-        "correo": "lucia.rubiano@example.com",
-        "avatar": "imagenes/lucia.jpg"
-    }
+  {
+    "dni": 1,
+    "nombre": "Sebastian",
+    "apellido": "Alfonso",
+    "edad": 18,
+    "correo": "sebastian.alfonso@example.com",
+    "avatar": "imagenes/sebastian.jpg"
+  },
+  {
+    "dni": 3,
+    "nombre": "david",
+    "apellido": "alfrendo",
+    "edad": 18,
+    "correo": "rdev@example.com",
+    "avatar": "imagenes/sebastian.jpg"
+  },
+  {
+    "dni": 4,
+    "nombre": "dev",
+    "apellido": "alfrendo",
+    "edad": 18,
+    "correo": "rde@example.com",
+    "avatar": "imagenes/sebastian.jpg"
+  },
+  {
+    "dni": 5,
+    "nombre": "jhonny",
+    "apellido": "alfrendo",
+    "edad": 28,
+    "correo": "jjje@example.com",
+    "avatar": "imagenes/sebastian.jpg"
+  }
 ]
