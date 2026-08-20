@@ -1,16 +1,18 @@
 [
-    {
-        "nombre":"juan",
-        "apellido":"perez",
-        "edad":25,
-        "correo":"juan@example.com",
-        "avatar":"images/juan.png"
-    },
-    {
-        "nombre":"luis",
-        "apellido":"gomez",
-        "edad":25,
-        "correo":"luis@example.com",
-        "avatar":"images/luis.png"
-    }
+  {
+    "dni": 1,
+    "nombre": "luis",
+    "apellido": "gomez",
+    "edad": 25,
+    "correo": "luis@example.com",
+    "avatar": "images/luis.png"
+  },
+  {
+    "dni": 2,
+    "nombre": "juan",
+    "apellido": "gomez",
+    "edad": 25,
+    "correo": "juan@example.com",
+    "avatar": "images/luis.png"
+  }
 ]
