@@ -9,10 +9,10 @@
   },
   {
     "dni": 2,
-    "nombre": "juan",
+    "nombre": "jonny",
     "apellido": "gomez",
     "edad": 25,
-    "correo": "juan@example.com",
+    "correo": "jonny@example.com",
     "avatar": "images/luis.png"
   }
 ]
