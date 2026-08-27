@@ -10,6 +10,21 @@ const { validarCampos } = require('./validacion/validar');
 //body-parse
 app.use(express.json());
 
+//utilizacion de libreria multer
+const multer= require("multer")
+//configurar almacenamiento
+const almacenamiento =multer.diskStorage({
+  destination:(req,file,cb)=>{
+    cb(null,"misImagenes/")
+  },
+  filename:(req,file,cb)=>{
+    // CORRECCIÓN: Se añade la extensión del archivo original para que no se guarde sin formato
+    const ext = ruta.extname(file.originalname);
+    cb(null,`${Date.now()}${ext}`)
+  }
+})
+
+const cargar =multer({storage:almacenamiento})
 //libreria para leer archivos
 const sistemaArchivos = require ('fs');
 const ruta = require('path')
@@ -59,25 +74,31 @@ app.get('/aprendices/:dni', (req, res) => {
         }
     });
 });
-//endpoint para crear un aprendiz
 
-app.post("/aprendices", validarCampos, (req, res) => {
+//endpoint para crear un aprendiz
+app.post("/aprendices",cargar.single("imagen"), validarCampos, (req, res) => {
+  const datosAprendiz= req.body
+  //modificar datoAprendiz con la ruta de la foto
   sistemaArchivos.readFile(rutaArchivojson, "utf-8", (error, datos) => {
     if (error) {
       return res.status(500).json({ error: "Error al leer el archivo" });
     }
 
     const listaaprendices = JSON.parse(datos);
+    
+    // CORRECCIÓN: Se cambió 'req.filename' y la sintaxis errónea de comas '${req,file,filename}' por 'req.file.filename'
+    datosAprendiz.avatar = req.file ? `/misImagenes/${req.file.filename}` : "sin imagen"
 
     // Generar DNI automáticamente: 1, 2, 3, 4...
     const dni = listaaprendices.length + 1;
 
-    const datoAprendiz = {
+    // CORRECCIÓN: Se cambió 'datoAprendiz' por 'datosAprendiz' para usar el objeto que ya tiene el avatar asignado arriba
+    const nuevoDatoAprendiz = {
       dni: dni,
-      ...req.body
+      ...datosAprendiz
     };
 
-    listaaprendices.push(datoAprendiz);
+    listaaprendices.push(nuevoDatoAprendiz);
 
     //adicionar al archivo  el nuevo aprendiz
     sistemaArchivos.writeFile(
@@ -90,11 +111,13 @@ app.post("/aprendices", validarCampos, (req, res) => {
           });
         }
 
-        res.status(201).json(datoAprendiz);
+        res.status(201).json(nuevoDatoAprendiz);
       }
     );
   });
 });
+
+//endpoint editar aprendiz por dni
 app.put("/aprendices/:dni", validarCampos, (req, res) => {
   const dni = String(req.params.dni);
   const datoAprendiz = req.body;

@@ -3,6 +3,7 @@ npm install express
 npm install express –save 
 npm install cors
 npm install dotenv
+npm install multer
 
 luego ejecuta: npm run dev
 

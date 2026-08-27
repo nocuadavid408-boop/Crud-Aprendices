@@ -5,14 +5,14 @@
     "apellido": "gomez",
     "edad": 25,
     "correo": "luis@example.com",
-    "avatar": "images/luis.png"
+    "avatar": "sin imagen"
   },
   {
-    "dni": 2,
-    "nombre": "jonny",
-    "apellido": "gomez",
-    "edad": 25,
-    "correo": "jonny@example.com",
-    "avatar": "images/luis.png"
+    "dni": "2",
+    "nombre": "Pepe",
+    "apellido": "Perez",
+    "edad": "15",
+    "correo": "pp@sena.edu.co",
+    "avatar": "/misImagenes/1787865166031.png"
   }
 ]
