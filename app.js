@@ -1,113 +1,125 @@
 const { error } = require('console');
 const express = require('express');
 require('dotenv/config');
-
-// Importaciones de librerías y módulos locales
-const sistemaArchivos = require('fs');
-const ruta = require('path');
-const { validarNombre, validarCorreo } = require('./Validaciones/validaciones');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Body-parser
+// Importar validaciones
+const { validarCampos } = require('./validacion/validar');
+
+//body-parse
 app.use(express.json());
 
-// Generar la ruta para el archivo JSON
-const rutaArchivojson = ruta.join(__dirname, 'listaDatos.json');
+//utilizacion de libreria multer
+const multer= require("multer")
+//configurar almacenamiento
+const almacenamiento =multer.diskStorage({
+  destination:(req,file,cb)=>{
+    cb(null,"misImagenes/")
+  },
+  filename:(req,file,cb)=>{
+    // CORRECCIÓN: Se añade la extensión del archivo original para que no se guarde sin formato
+    const ext = ruta.extname(file.originalname);
+    cb(null,`${Date.now()}${ext}`)
+  }
+})
 
-// Ruta raíz
+const cargar =multer({storage:almacenamiento})
+//libreria para leer archivos
+const sistemaArchivos = require ('fs');
+const ruta = require('path')
+//generar una ruta para el archivo aprendices.json
+const rutaArchivojson = ruta.join(__dirname,'listaDatos.json');
+
+//ruta raiz
 app.get('/', (req, res) => {
   res.send('Servidor inicializado correctamente');
 });
 
-// 1. OBTENER TODOS LOS APRENDICES
+//endpoint para obtener todos los aprendices
 app.get('/aprendices', (req, res) => {
-  sistemaArchivos.readFile(rutaArchivojson, "utf-8", (error, datos) => {
-    if (error) {
-      return res.status(500).json({ error: "Error al leer el archivo, conexion db" });
+  sistemaArchivos.readFile(rutaArchivojson, "utf-8", (error, datos) =>{
+    if (error){
+      return res.status(500).json({error: "Error al leer el archivo, conexion db"})
     }
-    try {
-      const listaaprendices = JSON.parse(datos);
-      res.json(listaaprendices);
-    } catch (errorParse) {
-      res.status(500).json({ error: "Error al procesar el archivo JSON" });
-    }
-  });
+    const listaaprendices = JSON.parse(datos);
+    res.json(listaaprendices)
+  })
 });
 
-// 2. OBTENER UN SOLO APRENDIZ POR DNI
+// Endpoint para obtener un aprendiz por su DNI
 app.get('/aprendices/:dni', (req, res) => {
-  const dni = parseInt(req.params.dni);
+    const dniBusqueda = String(req.params.dni);
 
-  sistemaArchivos.readFile(rutaArchivojson, "utf-8", (error, datos) => {
-    if (error) {
-      return res.status(500).json({ error: "Error al leer el archivo, conexion bd" });
-    }
-    try {
-      const listaAprendices = JSON.parse(datos);
-      const aprendizEncontrado = listaAprendices.find(aprendiz => Number(aprendiz.dni) === dni);
+    sistemaArchivos.readFile(rutaArchivojson, "utf-8", (error, datos) => {
+        if (error) {
+            return res.status(500).json({ error: "Error al leer el archivo" });
+        }
 
-      if (!aprendizEncontrado) {
-        return res.status(404).json({ error: "Aprendiz no encontrado" });
-      }
+        try {
+            const listaAprendices = JSON.parse(datos);
+            // Buscar el aprendiz que coincida con el DNI proporcionado
+            const aprendizEncontrado = listaAprendices.find(aprendiz => String(aprendiz.dni) === dniBusqueda);
 
-      res.json(aprendizEncontrado);
-    } catch (errorParse) {
-      res.status(500).json({ error: "Error al procesar el archivo JSON" });
-    }
-  });
+            // Si no se encuentra, retornar un estado 404
+            if (!aprendizEncontrado) {
+                return res.status(404).json({ error: "Aprendiz no encontrado" });
+            }
+
+            // Si se encuentra, retornar el objeto del aprendiz
+            res.json(aprendizEncontrado);
+
+        } catch (errorParse) {
+            res.status(500).json({ error: "Error al procesar el formato de los datos" });
+        }
+    });
 });
 
-// 3. CREAR UN APRENDIZ (Con DNI automático y Validaciones)
-app.post("/aprendices", (req, res) => {
-  const { nombre, correo } = req.body;
-
-  // Validaciones
-  if (!validarNombre(nombre)) {
-    return res.status(400).json({ error: "El nombre debe ser un texto de más de 3 letras." });
-  }
-
-  if (!validarCorreo(correo)) {
-    return res.status(400).json({ error: "El correo electrónico no tiene un formato válido." });
-  }
-
+//endpoint para crear un aprendiz
+app.post("/aprendices",cargar.single("imagen"), validarCampos, (req, res) => {
+  const datosAprendiz= req.body
+  //modificar datoAprendiz con la ruta de la foto
   sistemaArchivos.readFile(rutaArchivojson, "utf-8", (error, datos) => {
     if (error) {
       return res.status(500).json({ error: "Error al leer el archivo" });
     }
 
-    try {
-      const listaaprendices = JSON.parse(datos);
+    const listaaprendices = JSON.parse(datos);
+    
+    // CORRECCIÓN: Se cambió 'req.filename' y la sintaxis errónea de comas '${req,file,filename}' por 'req.file.filename'
+    datosAprendiz.avatar = req.file ? `/misImagenes/${req.file.filename}` : "sin imagen"
 
-      // Generar DNI automático (autoincrementable)
-      const nuevoDni = listaaprendices.length > 0 
-        ? Math.max(...listaaprendices.map(a => Number(a.dni) || 0)) + 1 
-        : 1;
+    // Generar DNI automáticamente: 1, 2, 3, 4...
+    const dni = listaaprendices.length + 1;
 
-      const nuevoAprendiz = {
-        dni: nuevoDni,
-        ...req.body
-      };
+    // CORRECCIÓN: Se cambió 'datoAprendiz' por 'datosAprendiz' para usar el objeto que ya tiene el avatar asignado arriba
+    const nuevoDatoAprendiz = {
+      dni: dni,
+      ...datosAprendiz
+    };
 
-      listaaprendices.push(nuevoAprendiz);
+    listaaprendices.push(nuevoDatoAprendiz);
 
-      sistemaArchivos.writeFile(rutaArchivojson, JSON.stringify(listaaprendices, null, 2), (errorEscribir) => {
-        if (errorEscribir) {
-          return res.status(500).json({ error: "No se puede registrar el aprendiz." });
+    //adicionar al archivo  el nuevo aprendiz
+    sistemaArchivos.writeFile(
+      rutaArchivojson,
+      JSON.stringify(listaaprendices, null, 2),
+      (error) => {
+        if (error) {
+          return res.status(500).json({
+            error: "No se puede registrar el aprendiz."
+          });
         }
-        res.status(201).json(nuevoAprendiz);
-      });
 
-    } catch (errorParse) {
-      res.status(500).json({ error: "Error al procesar el archivo JSON" });
-    }
+        res.status(201).json(nuevoDatoAprendiz);
+      }
+    );
   });
 });
 
-// 4. ACTUALIZAR UN APRENDIZ POR DNI
-app.put("/aprendices/:dni", (req, res) => {
-  const dni = parseInt(req.params.dni);
+//endpoint editar aprendiz por dni
+app.put("/aprendices/:dni", validarCampos, (req, res) => {
+  const dni = String(req.params.dni);
   const datoAprendiz = req.body;
 
   sistemaArchivos.readFile(rutaArchivojson, "utf-8", (error, datos) => {
@@ -115,26 +127,23 @@ app.put("/aprendices/:dni", (req, res) => {
       return res.status(500).json({ error: "Error al leer el archivo" });
     }
 
-    try {
-      let listaaprendices = JSON.parse(datos);
+    let listaaprendices = JSON.parse(datos);
 
-      listaaprendices = listaaprendices.map((aprendiz) => {
-        return aprendiz.dni === dni ? { ...aprendiz, ...datoAprendiz } : aprendiz;
-      });
+    listaaprendices = listaaprendices.map((aprendiz) => {
+      return String(aprendiz.dni) === dni ? { ...aprendiz, ...datoAprendiz } : aprendiz;
+    });
 
-      sistemaArchivos.writeFile(rutaArchivojson, JSON.stringify(listaaprendices, null, 2), (errorEscribir) => {
-        if (errorEscribir) {
-          return res.status(500).json({ error: "No se puede modificar el aprendiz." });
-        }
-        res.json({ mensaje: "Aprendiz modificado con éxito", datoAprendiz });
-      });
-    } catch (errorParse) {
-      res.status(500).json({ error: "Error al procesar el archivo JSON" });
-    }
+    sistemaArchivos.writeFile(rutaArchivojson, JSON.stringify(listaaprendices, null, 2), (error) => {
+      if (error) {
+        return res.status(500).json({ error: "No se puede registrar el aprendiz." });
+      }
+      res.json({ mensaje: "Aprendiz modificado con éxito", datoAprendiz });
+    });
   });
 });
 
-// 5. ELIMINAR UN APRENDIZ POR DNI
+
+// 4. ELIMINAR UN APRENDIZ POR DNI
 app.delete('/aprendices/:dni', (req, res) => {
   const dniBusqueda = String(req.params.dni);
 
@@ -164,7 +173,7 @@ app.delete('/aprendices/:dni', (req, res) => {
   });
 });
 
-// Servidor a la escucha
+//mode de escucha del servidor
 app.listen(PORT, () => {
   console.log(`Servidor funcionando en http://localhost:${PORT}`);
 });

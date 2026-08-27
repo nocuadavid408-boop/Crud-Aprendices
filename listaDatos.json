@@ -8,7 +8,7 @@
     "avatar": "imagenes/sebastian.jpg"
   },
   {
-    "dni": 3,
+    "dni": 2,
     "nombre": "david",
     "apellido": "alfrendo",
     "edad": 18,
@@ -16,7 +16,7 @@
     "avatar": "imagenes/sebastian.jpg"
   },
   {
-    "dni": 4,
+    "dni": 3,
     "nombre": "dev",
     "apellido": "alfrendo",
     "edad": 18,
@@ -24,11 +24,27 @@
     "avatar": "imagenes/sebastian.jpg"
   },
   {
-    "dni": 5,
+    "dni": 4,
     "nombre": "jhonny",
     "apellido": "alfrendo",
     "edad": 28,
     "correo": "jjje@example.com",
     "avatar": "imagenes/sebastian.jpg"
+  },
+  {
+    "dni": 5,
+    "nombre": "Johan",
+    "apellido": "Alfonso",
+    "edad": 18,
+    "correo": "alfonso@example.com",
+    "avatar": "imagenes/Johan.jpg"
+  },
+  {
+    "dni": 6,
+    "nombre": "Daniel",
+    "apellido": "Alfonso",
+    "edad": 18,
+    "correo": "dan@example.com",
+    "avatar": "imagenes/Daniel.jpg"
   }
 ]
