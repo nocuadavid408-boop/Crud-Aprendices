@@ -14,5 +14,21 @@
     "edad": "15",
     "correo": "pp@sena.edu.co",
     "avatar": "/misImagenes/1787865166031.png"
+  },
+  {
+    "dni": 3,
+    "nombre": "eilenn",
+    "apellido": "sanchez",
+    "edad": 17,
+    "correo": "loca@example.com",
+    "avatar": "sin imagen"
+  },
+  {
+    "dni": 4,
+    "nombre": "valeria",
+    "apellido": "sandoval",
+    "edad": 19,
+    "correo": "otraloca@example.com",
+    "avatar": "sin imagen"
   }
 ]

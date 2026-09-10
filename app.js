@@ -1,6 +1,10 @@
 const { error } = require('console');
 const express = require('express');
-const registroAprendices = require('./middleware/registroMiddleware');
+const registroMiddleware = require('./middleware/registroMiddleware');
+const manejadorErrores = require('./middleware/manejadorErrores');
+const autenticarToken = require('./middleware/autenticar');
+const jwtoken = require('jsonwebtoken');
+
 require('dotenv/config');
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,7 +22,8 @@ app.use((req, res, next) => {
   console.log(`Tiempo: ${tiempoMilisegundos}`)
   next()
 })
-app.use(registroAprendices)
+app.use(registroMiddleware)
+
 
 //utilizacion de libreria multer
 const multer= require("multer")
@@ -183,6 +188,40 @@ app.delete('/aprendices/:dni', (req, res) => {
   });
 });
 
+//endopoint para probocar error
+app.get("/error", (req, res, next) =>{
+  next(new Error("Error provocado)"))
+})
+
+//endpoint con ruta protegida
+app.get("/rutaprotegida", autenticarToken, (req, res) => {
+  res.json({ mensaje: "Esta es una ruta protegida" });
+});
+
+//endpoint inicio de sesion para generar token
+app.post("/login", (req, res) => {
+  const {usuario,clave} = req.body
+  //simular bs
+  const usuariobd = {
+  "usuario": "David",
+  "clave": "1234"
+  }
+  //validar datos del usuario
+  if (usuario !== usuariobd.usuario || clave !== usuariobd.clave){
+    res.json ({mensaje: "Usuario y/o clave incorrecta"}) 
+  }
+  //crear token
+  const token = jwtoken.sing(
+    //pasamos datos del usuario
+    {user: usuario},
+    process.env.JWT_SECRET,
+    { expiracion: "1h"}
+  )
+  res.json({token})
+})
+
+//manejador de errores
+app.use(manejadorErrores)
 
 //mode de escucha del servidor
 app.listen(PORT, () => {
