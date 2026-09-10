@@ -1,5 +1,6 @@
 const { error } = require('console');
 const express = require('express');
+const registroAprendices = require('./middleware/registroMiddleware');
 require('dotenv/config');
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,6 +10,15 @@ const { validarCampos } = require('./validacion/validar');
 
 //body-parse
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+//creacion de uso de middleware
+app.use((req, res, next) => {
+  const tiempoMilisegundos = Date.now()
+  console.log(`Tiempo: ${tiempoMilisegundos}`)
+  next()
+})
+app.use(registroAprendices)
 
 //utilizacion de libreria multer
 const multer= require("multer")
@@ -172,6 +182,7 @@ app.delete('/aprendices/:dni', (req, res) => {
     }
   });
 });
+
 
 //mode de escucha del servidor
 app.listen(PORT, () => {
