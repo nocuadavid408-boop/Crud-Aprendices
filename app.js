@@ -208,7 +208,7 @@ app.post("/login", (req,res)=>{
   const {usuario,clave} =req.body
   //simular bd
   const usuariobd={
-    "usuario":"Alejandro",
+    "usuario":"David",
     "clave":"abc123"
   }
   //validar datos del usuario
