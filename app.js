@@ -1,32 +1,34 @@
 const { error } = require('console');
 const express = require('express');
-const registroMiddleware = require('./middleware/registroMiddleware');
-const manejadorErrores = require('./middleware/manejadorErrores');
-const autenticarToken = require('./middleware/autenticar');
-const jwtoken = require('jsonwebtoken');
+const multer= require("multer")             // MOVIDO ARRIBA para evitar fallos de inicialización
+const sistemaArchivos = require ('fs');    // MOVIDO ARRIBA
+const ruta = require('path')                // MOVIDO ARRIBA para que funcione en el almacenamiento de multer
+const registroMiddleware =require("./src/middleware/registroMiddleware")
+const manejoErrores  = require ("./src/middleware/manejadorErrores")
+const autenticarToken= require("./src/middleware/autenticar")
+const jwtoken =require("jsonwebtoken")
+
 
 require('dotenv/config');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Importar validaciones
-const { validarCampos } = require('./validacion/validar');
+const { validarCampos } = require('./src/utileria/validar');
 
 //body-parse
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended:true}));
 
-//creacion de uso de middleware
-app.use((req, res, next) => {
-  const tiempoMilisegundos = Date.now()
-  console.log(`Tiempo: ${tiempoMilisegundos}`)
+//creacion de usu de middleware
+app.use((req,res,next)=>{
+  const tiempoMilisegundos =Date.now()
+  console.log(`tiempo:${tiempoMilisegundos}`)
   next()
 })
 app.use(registroMiddleware)
 
-
 //utilizacion de libreria multer
-const multer= require("multer")
 //configurar almacenamiento
 const almacenamiento =multer.diskStorage({
   destination:(req,file,cb)=>{
@@ -40,9 +42,6 @@ const almacenamiento =multer.diskStorage({
 })
 
 const cargar =multer({storage:almacenamiento})
-//libreria para leer archivos
-const sistemaArchivos = require ('fs');
-const ruta = require('path')
 //generar una ruta para el archivo aprendices.json
 const rutaArchivojson = ruta.join(__dirname,'listaDatos.json');
 
@@ -72,9 +71,9 @@ app.get('/aprendices/:dni', (req, res) => {
         }
 
         try {
-            const listaAprendices = JSON.parse(datos);
+            const listaCampres = JSON.parse(datos);
             // Buscar el aprendiz que coincida con el DNI proporcionado
-            const aprendizEncontrado = listaAprendices.find(aprendiz => String(aprendiz.dni) === dniBusqueda);
+            const aprendizEncontrado = listaCampres.find(aprendiz => String(aprendiz.dni) === dniBusqueda);
 
             // Si no se encuentra, retornar un estado 404
             if (!aprendizEncontrado) {
@@ -133,7 +132,8 @@ app.post("/aprendices",cargar.single("imagen"), validarCampos, (req, res) => {
 });
 
 //endpoint editar aprendiz por dni
-app.put("/aprendices/:dni", validarCampos, (req, res) => {
+// CORRECCIÓN: Se agrega cargar.single("imagen") para capturar datos multimedia en la edición
+app.put("/aprendices/:dni", cargar.single("imagen"), validarCampos, (req, res) => {
   const dni = String(req.params.dni);
   const datoAprendiz = req.body;
 
@@ -143,6 +143,11 @@ app.put("/aprendices/:dni", validarCampos, (req, res) => {
     }
 
     let listaaprendices = JSON.parse(datos);
+
+    // Si se sube una nueva imagen en la edición, se actualiza el campo avatar
+    if (req.file) {
+      datoAprendiz.avatar = `/misImagenes/${req.file.filename}`;
+    }
 
     listaaprendices = listaaprendices.map((aprendiz) => {
       return String(aprendiz.dni) === dni ? { ...aprendiz, ...datoAprendiz } : aprendiz;
@@ -188,42 +193,42 @@ app.delete('/aprendices/:dni', (req, res) => {
   });
 });
 
-//endopoint para probocar error
-app.get("/error", (req, res, next) =>{
-  next(new Error("Error provocado)"))
+//endpoint para provocar un error
+app.get("/error",(req,res,next)=>{
+  next(new Error("Error provocado"))
 })
 
 //endpoint con ruta protegida
-app.get("/rutaprotegida", autenticarToken, (req, res) => {
-  res.json({ mensaje: "Esta es una ruta protegida" });
-});
+app.get("/rutaProtegida",autenticarToken,(req,res)=>{
+  res.json({mensaje:"Es este una ruta protegida"})
+})
 
-//endpoint inicio de sesion para generar token
-app.post("/login", (req, res) => {
-  const {usuario,clave} = req.body
-  //simular bs
-  const usuariobd = {
-  "usuario": "David",
-  "clave": "1234"
+//endpoint inicio sesion para generar token
+app.post("/login", (req,res)=>{
+  const {usuario,clave} =req.body
+  //simular bd
+  const usuariobd={
+    "usuario":"David",
+    "clave":"abc123"
   }
   //validar datos del usuario
   if (usuario !== usuariobd.usuario || clave !== usuariobd.clave){
-    res.json ({mensaje: "Usuario y/o clave incorrecta"}) 
+    // CORRECCIÓN: Se añade return para que detenga la ejecución si las credenciales fallan
+    return res.status(401).json({mensaje:"usuario y/o clave incorrecta."})
   }
   //crear token
-  const token = jwtoken.sing(
-    //pasamos datos del usuario
-    {user: usuario},
-    process.env.JWT_SECRET,
-    { expiracion: "1h"}
+  const token = jwtoken.sign(
+  //pasamos datos del usaurio
+  {user:usuario},
+  // CORRECCIÓN: Corregido 'proccess' por 'process' y 'expirexIn' por 'expiresIn'
+  process.env.JWT_SECRET,
+  {expiresIn:"1h"}
   )
   res.json({token})
 })
-
 //manejador de errores
-app.use(manejadorErrores)
-
-//mode de escucha del servidor
+app.use(manejoErrores)
+//modo de escucha del servidor
 app.listen(PORT, () => {
   console.log(`Servidor funcionando en http://localhost:${PORT}`);
 });
