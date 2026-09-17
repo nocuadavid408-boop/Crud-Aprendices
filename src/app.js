@@ -14,7 +14,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Importar validaciones
-const { validarCampos } = require('./validacion/validar');
+const { validarCampos } = require('./utileria/validar');
 
 //body-parse
 app.use(express.json());
